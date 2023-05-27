@@ -155,34 +155,37 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
 
-
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constLaySps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/txtDateNTime"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp">
 
     <Spinner
         android:id="@+id/spDay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/txtDateNTime"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginStart="82dp"
-        android:layout_marginTop="32dp"/>
+        tools:ignore="MissingConstraints" />
 
     <Spinner
         android:id="@+id/spMonth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/txtDateNTime"
         app:layout_constraintStart_toEndOf="@+id/spDay"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"/>
+        tools:ignore="MissingConstraints" />
 
     <Spinner
         android:id="@+id/spYear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/txtDateNTime"
         app:layout_constraintStart_toEndOf="@+id/spMonth"
         android:layout_marginStart="32dp"
-        android:layout_marginTop="32dp"/>
+        tools:ignore="MissingConstraints" />
 
     <Spinner
         android:id="@+id/spHour"
@@ -202,13 +205,25 @@
         app:layout_constraintEnd_toStartOf="@id/spYear"
         android:layout_marginTop="32dp"/>
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnNow"
+        android:textAllCaps="false"
+        android:text="Now"
+        app:layout_constraintTop_toBottomOf="@+id/constLaySps"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/btnAddKCals"
         android:text="Add"
         android:textAllCaps="false"
-        app:layout_constraintTop_toBottomOf="@+id/spMin"
+        app:layout_constraintTop_toBottomOf="@+id/constLaySps"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

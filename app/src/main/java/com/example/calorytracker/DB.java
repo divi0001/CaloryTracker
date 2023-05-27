@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class DB extends SQLiteOpenHelper {
 
     Context context;
@@ -20,7 +22,7 @@ public class DB extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE Table Calories (id integer primary key autoincrement, caloryTotal integer," +
-                "units integer, comma integer, foodID integer, foreign key (foodID) references Food(id))");
+                "units integer, comma integer, foodID integer, datetimer datetime , foreign key (foodID) references Food(id))");
 
         db.execSQL("create table Food (id integer primary key autoincrement, caloryPerUnit integer," +
                 " nameOfProduct text, unitTypeID integer, foreign key (unitTypeID) references Unit(id))");
@@ -36,13 +38,15 @@ public class DB extends SQLiteOpenHelper {
     }
 
 
-    public void addToCalories(Food f, float units){
+    public void addToCalories(Food f, float units, int day, int month, int year, int hour, int minute){
         SQLiteDatabase db = this.getReadableDatabase();
         SQLiteDatabase dbWrite = this.getWritableDatabase();
         Cursor c = db.rawQuery("Select * from Food" ,null);
         ContentValues cv = new ContentValues();
 
         int foodId;
+        String dateTime = year + "-" + month + "-" + day + "-" + hour + "-" + minute;
+
 
         if(c.getCount()>0){
             while(c.moveToNext()){
@@ -65,6 +69,7 @@ public class DB extends SQLiteOpenHelper {
         int comma = (int)(units*1000);
         comma = comma - (int)(units)*1000;
         cv.put("comma", comma);
+        cv.put("datetimer", dateTime);
 
         if(f.getCalPerUnit() != -1) {
             int caloryTotal = (int) units * f.getCalPerUnit();
@@ -76,7 +81,7 @@ public class DB extends SQLiteOpenHelper {
         else Toast.makeText(context, "Successfully inserted into Calories", Toast.LENGTH_SHORT).show();
     }
 
-    private String unitByID(int a) {
+    String unitByID(int a) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery("Select type from Unit where id=?", new String[]{Integer.toString(a)});
         if(c.getCount()>0){
@@ -135,4 +140,34 @@ public class DB extends SQLiteOpenHelper {
     }
 
 
+    public ArrayList<String> getUnits(String s) {
+
+        ArrayList<String> units = new ArrayList<>();
+        units.add(s);
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("select type from Unit", null);
+
+        if(c.getCount()>0){
+            while(c.moveToNext()){
+                units.add(c.getString(0));
+            }
+        }
+        return units;
+
+    }
+
+    public ArrayList<Food> getFoods(String s) {
+
+        ArrayList<Food> foods = new ArrayList<>();
+        foods.add(new Food(s,"Select"));
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery("select * from Food", null);
+
+        if(c.getCount()>0){
+            while(c.moveToNext()){
+                foods.add(new Food(c.getInt(0), c.getString(1), unitByID(c.getInt(2))));
+            }
+        }
+         return foods;
+    }
 }
