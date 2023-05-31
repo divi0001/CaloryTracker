@@ -2,6 +2,7 @@ package com.example.calorytracker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -23,6 +24,7 @@ public class AddNewActivity extends AppCompatActivity {
     private EditText editNameOfFood, editKCalPerUnit, editUnit, editNumOfUnits;
     private Spinner spUnit, spExistingFood, spDay, spMonth, spYear, spHour, spMin;
     private Button btnAddKcals, btnNow;
+    private ArrayList<Food> foods;
 
 
     @Override
@@ -59,7 +61,6 @@ public class AddNewActivity extends AppCompatActivity {
         units.add(0,"Select...");
 
         ArrayList<String> foodNames = new ArrayList<>();
-        foodNames.add(0,"Select Food Name");
 
         ArrayList<Integer> days = new ArrayList<>();
         days.add(0,31);
@@ -80,14 +81,14 @@ public class AddNewActivity extends AppCompatActivity {
 
         units = db.getUnits(units.get(0));
 
-        ArrayList<Food> foods = db.getFoods(foodNames.get(0));
+        foods = db.getFoods("Select a food");
 
         for (Food f: foods){
             foodNames.add(f.getNameOfProd());
         }
 
 
-        for (int i = 2; i < 60; i++){
+        for (int i = 2; i < 61; i++){ //todo this is buggy when on minute values of 1 or 0
             if(i > 29){
                 days.add(60-i);
             }
@@ -112,6 +113,24 @@ public class AddNewActivity extends AppCompatActivity {
 
         ArrayList<ArrayAdapter> adapters = setupSps(spinners, arr);
 
+        System.out.println(foods);
+        spExistingFood.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if(position != 0) {
+                    updateFoods(db);
+                    System.out.println(foods);
+                    System.out.println(position);
+                    editKCalPerUnit.setText(String.valueOf(foods.get(position).getCalPerUnit()));
+                    editUnit.setText(foods.get(position).getUnitType());
+                    editNameOfFood.setText(String.valueOf(foods.get(position).getNameOfProd()));
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+
         btnNow.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -124,7 +143,7 @@ public class AddNewActivity extends AppCompatActivity {
 
                 spDay.setSelection(31-d);
                 spMonth.setSelection(12-mo);
-                spYear.setSelection(2023-y);
+                spYear.setSelection(Year.now().getValue()-y);
                 spHour.setSelection(23-h);
                 spMin.setSelection(59-mi);
             }
@@ -143,20 +162,41 @@ public class AddNewActivity extends AppCompatActivity {
                 }else if(spUnit.getSelectedItemPosition() == 0 && editUnit.getText().toString().equals("")){
                     Toast.makeText(AddNewActivity.this, "Please give a Unit to measure this in", Toast.LENGTH_SHORT).show();
                 }else {
-
+                    Food f;
                     if (spExistingFood.getSelectedItemPosition() != 0) {
-                        Food f = foods.get(spExistingFood.getSelectedItemPosition() - 1);
+                        f = foods.get(spExistingFood.getSelectedItemPosition());
                     } else {
                         if (editKCalPerUnit.getText().toString().equals("") && spUnit.getSelectedItemPosition() == 0) {
-                            Food f = new Food(editNameOfFood.getText().toString(), editUnit.getText().toString());
+                            f = new Food(editNameOfFood.getText().toString(), editUnit.getText().toString());
                         } else if (editKCalPerUnit.getText().toString().equals("") && spUnit.getSelectedItemPosition() != 0) {
-                            Food f = new Food(editNameOfFood.getText().toString(), db1.unitByID(spUnit.getSelectedItemPosition() - 1));
+                            f = new Food(editNameOfFood.getText().toString(), db1.unitByID(spUnit.getSelectedItemPosition() - 1));
                         } else if (spUnit.getSelectedItemPosition() != 0) {
-                            Food f = new Food(Integer.parseInt(editKCalPerUnit.getText().toString()), editNameOfFood.getText().toString(), db1.unitByID(spUnit.getSelectedItemPosition() - 1));
+                            f = new Food(Integer.parseInt(editKCalPerUnit.getText().toString()), editNameOfFood.getText().toString(), db1.unitByID(spUnit.getSelectedItemPosition() - 1)); //todo -1 might cause problem, revise later, if the db makes issues
                         } else {
-                            Food f = new Food(Integer.parseInt(editKCalPerUnit.getText().toString()), editNameOfFood.getText().toString(), editUnit.getText().toString());
+                            f = new Food(Integer.parseInt(editKCalPerUnit.getText().toString()), editNameOfFood.getText().toString(), editUnit.getText().toString());
                         }
                     }
+                    /*
+                    int id = -1;
+
+                    for(Food f1: foods) {
+                        if (f.equals(f1)) {
+                            Cursor c = db1.dbQuery("Select * From Food", null);
+                            if (c.getCount() > 0) {
+                                while (c.moveToNext()) {
+                                    if (c.getString(2).equals(f.getNameOfProd()) && c.getInt(3) == db1.translateToUnitId(f.getUnitType())) {
+                                        id = c.getInt(0);
+                                    }
+                                }
+                                break;
+                            }
+                        }
+
+                    }*/
+
+                    db1.addToCalories(f, Float.parseFloat(editNumOfUnits.getText().toString()), (int)(spDay.getSelectedItem()), (int)(spMonth.getSelectedItem()), (int)(spYear.getSelectedItem()),
+                        (int)spHour.getSelectedItem(), (int)spMin.getSelectedItem());
+
                     finish();
                 }
             }
@@ -168,6 +208,10 @@ public class AddNewActivity extends AppCompatActivity {
 
 
 
+    }
+
+    private void updateFoods(DB db) {
+        foods = db.getFoods("Select a food");
     }
 
     private ArrayList<ArrayAdapter> setupSps(ArrayList<Spinner> spinners, ArrayList<ArrayList> arr) {
@@ -182,17 +226,6 @@ public class AddNewActivity extends AppCompatActivity {
             adapters.add(new ArrayAdapter(this, android.R.layout.simple_list_item_1, ar));
             adapters.get(i).setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             sp.setAdapter(adapters.get(i));
-            sp.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-
-                }
-            });
         }
         return adapters;
     }

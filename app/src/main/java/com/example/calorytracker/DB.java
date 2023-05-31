@@ -5,7 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
@@ -44,17 +47,27 @@ public class DB extends SQLiteOpenHelper {
         Cursor c = db.rawQuery("Select * from Food" ,null);
         ContentValues cv = new ContentValues();
 
-        int foodId;
-        String dateTime = year + "-" + month + "-" + day + "-" + hour + "-" + minute;
+        int foodId =-1;
+        String dateTime = year + "-" + month + "-" + day + " " + hour + ":" + minute;
 
-
+        boolean dont = false;
         if(c.getCount()>0){
             while(c.moveToNext()){
-                Food f1 = new Food(c.getInt(1), Integer.toString(c.getInt(2)) + "." + Integer.toString(c.getInt(3)), unitByID(c.getInt(4)));
+                //Food f1 = new Food(c.getInt(1), Integer.toString(c.getInt(2)) + "." + Integer.toString(c.getInt(3)), unitByID(c.getInt(4)));
+                Food f1 = new Food(c.getInt(1), c.getString(2), unitByID(c.getInt(3)));
+                System.out.println(f1);
                 if(f.equals(f1)){
                     foodId = c.getInt(0); //int id of the food
-                    cv.put("FoodID", foodId);
+                    dont = true;
+
                 }
+            }
+
+            if(!dont) {
+                addFood(f);
+                Cursor maxid = db.rawQuery("Select max(id) from Food", null);
+                maxid.moveToFirst();
+                foodId = maxid.getInt(0);
             }
         }else {
             //food not found, insert into Food
@@ -62,9 +75,9 @@ public class DB extends SQLiteOpenHelper {
             Cursor maxid = db.rawQuery("Select max(id) from Food",null);
             maxid.moveToFirst();
             foodId = maxid.getInt(0);
-            cv.put("FoodID", foodId);
-        }
 
+        }
+        cv.put("FoodID", foodId);
         cv.put("units", (int) units); //up to 3 decimal places precision
         int comma = (int)(units*1000);
         comma = comma - (int)(units)*1000;
@@ -72,7 +85,7 @@ public class DB extends SQLiteOpenHelper {
         cv.put("datetimer", dateTime);
 
         if(f.getCalPerUnit() != -1) {
-            int caloryTotal = (int) units * f.getCalPerUnit();
+            int caloryTotal = (int) (units * f.getCalPerUnit());
             cv.put("caloryTotal", caloryTotal);
         }
         
@@ -92,6 +105,39 @@ public class DB extends SQLiteOpenHelper {
         }
 
     }
+
+    public ArrayList<CalEntry> getEverything(){
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        ArrayList<CalEntry> calEntries = new ArrayList<>();
+
+        Cursor calos = db.rawQuery("select * from Calories", null);
+        Cursor foo = db.rawQuery("select * from Food", null);
+
+        if(calos.getCount()>0){
+            while(calos.moveToNext()){
+
+                if(foo.getCount()>0){
+                    while (foo.moveToNext()){
+                        if(foo.getInt(0) == calos.getInt(4)){
+                            break;
+                        }
+                    }
+                }
+
+                calEntries.add(new CalEntry(calos.getInt(0), calos.getInt(1),calos.getInt(2) , calos.getInt(3), foo.getInt(1), calos.getString(5), foo.getString(2), unitByID(foo.getInt(3))));
+
+            }
+        }
+
+        //Cursor c = db.rawQuery("select Calories.id, caloryTotal, units, comma, datetimer, caloryPerUnit, nameOfProduct, type from Calories, Food, Unit where unitTypeID = ? and foodID=?", new String[]{"Unit.id","Food.id"});
+
+
+        return calEntries;
+        //returns id, calTotal, unitnums, commaunitnums, datetimer, caloryPerUnit, nameOfProduct, type(From Unit)
+        //String[] fromFieldNames = new String[]{"id", "caloryTotal", "units", "comma", "datetimer", "caloryPerUnit", "nameOfProduct", "type"};
+    }
+
 
 
     /**
@@ -127,7 +173,7 @@ public class DB extends SQLiteOpenHelper {
 
     }
 
-    private int translateToUnitId(String unitType) {
+    int translateToUnitId(String unitType) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery("Select * from Unit", null);
 
@@ -159,15 +205,33 @@ public class DB extends SQLiteOpenHelper {
     public ArrayList<Food> getFoods(String s) {
 
         ArrayList<Food> foods = new ArrayList<>();
-        foods.add(new Food(s,"Select"));
+        if(s != null){
+            foods.add(new Food(s,"Select"));
+
+        }
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery("select * from Food", null);
 
         if(c.getCount()>0){
             while(c.moveToNext()){
-                foods.add(new Food(c.getInt(0), c.getString(1), unitByID(c.getInt(2))));
+                foods.add(new Food(c.getInt(1), c.getString(2), unitByID(c.getInt(3))));
             }
         }
          return foods;
     }
+
+
+    public Cursor dbQuery(String sql, @Nullable  String[] where){
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(sql, where);
+    }
+
+
+
+
+
+
+
+
+
 }

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="20dp"
+    android:elevation="40dp"
+    android:id="@+id/cvCalory">
+
+
+
+<LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="12dp"
+    android:paddingBottom="12dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/txtNameOfProd"
+        android:text="Name: \n"
+        android:textSize="32sp"/>
+
+
+
+        <TextView
+            android:id="@+id/txtCalTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CalTotal: "
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/txtCalPerUnit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CalPerUnit: "
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/txtUnitNums"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="UnitNums: "
+            android:textSize="18sp"/>
+
+        <TextView
+            android:id="@+id/txtUnit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Unit: "
+            android:textSize="18sp"/>
+
+    <!--sort the array which populates this by the date and time-->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtDateTimer"
+            android:text="Date and Time:                                          \n"
+            android:textSize="18sp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="id"
+            android:id="@+id/txtCalID"
+            android:visibility="invisible"/>
+
+
+
+</LinearLayout>
+</androidx.cardview.widget.CardView>
